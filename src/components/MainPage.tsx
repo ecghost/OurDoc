@@ -7,7 +7,7 @@ import {
   UserOutlined,
 } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
-import { Layout, theme } from 'antd'
+import { Layout } from 'antd'
 
 import * as Y from 'yjs'
 import { WebsocketProvider } from 'y-websocket'
@@ -17,18 +17,23 @@ import SiderMenu from './SiderMenu'
 import {CreateNewDocForm, ContentWithEditorAndPreview} from './ContentWithEditorAndPreview'
 import styles from '../components.module.less'
 
-type MenuItem = Required<MenuProps>['items'][number]
+type AntdMenuItem = Required<MenuProps>['items'][number]
+
+export type SiderMenuItem = AntdMenuItem & {
+  label?: React.ReactNode,
+  children?: SiderMenuItem[]
+}
 
 function getItem(
   label: React.ReactNode,
   key: React.Key,
   icon?: React.ReactNode,
-  children?: MenuItem[],
-): MenuItem {
-  return { label, key, icon, children } as MenuItem
+  children?: SiderMenuItem[],
+): SiderMenuItem {
+  return { label, key, icon, children } as SiderMenuItem
 }
 
-const userItems: MenuItem[] = [
+const userItems: SiderMenuItem[] = [
   getItem('Yaocheng', 'user-1', <UserOutlined />, [
     getItem('GuizhouHome', 'room-1'),
     getItem('ZhejiangHome', 'room-2'),
@@ -38,7 +43,7 @@ const userItems: MenuItem[] = [
   ]),
 ]
 
-const roomItems: MenuItem[] = [
+const roomItems: SiderMenuItem[] = [
   getItem('GuizhouHome', 'room-1', <DesktopOutlined />),
   getItem('ZhejiangHome', 'room-2', <PieChartOutlined />),
   getItem('ShaanxiHome', 'room-3', <FileOutlined />),
@@ -57,12 +62,8 @@ const MainPage: React.FC = () => {
   const [provider, setProvider] = useState<WebsocketProvider | null>(null)
   const [binding, setBinding] = useState<MonacoBinding | null>(null)
   const [editor, setEditor] = useState<any | null>(null)
-  const [connected, setConnected] = useState(false)
+  // const [connected, setConnected] = useState(false)
   const [peers, setPeers] = useState<number>(1)
-
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken()
 
   useEffect(() => {
     if (!selectedRoom) return
@@ -111,70 +112,8 @@ const MainPage: React.FC = () => {
 
   }, [selectedRoom, editor])
 
-  // useEffect(() => {
-  //   const provider = new WebsocketProvider(`ws://localhost:1234`, selectedKey, ydoc)
-  //   setProvider(provider)
-
-  //   provider.on('status', (event: any) => {
-  //     setConnected(event.status === 'connected')
-  //   })
-
-  //   // awareness 监听在线人数
-  //   const awareness = provider.awareness
-  //   const localUser = {
-  //     name: `User-${Math.floor(Math.random() * 10000)}`,
-  //     // 你可以加颜色、id、cursor 等
-  //     color: '#' + Math.floor(Math.random() * 16777215).toString(16)
-  //   }
-  //   awareness.setLocalStateField('user', localUser)
-  //   const updatePeers = () => {
-  //     setPeers(awareness.getStates().size)
-  //   }
-  //   awareness.on('change', updatePeers)
-
-  //   updatePeers()
-  //   return () => {
-  //     awareness.setLocalState(null)
-  //     awareness.off('change', updatePeers)
-  //     provider.destroy()
-  //     ydoc.destroy()
-  //   }
-  // }, [ydoc])
-
-  // useEffect(() => {
-  //   if (!provider || !editor) return
-  //   const type = ydoc.getText('monaco')
-  //   const binding = new MonacoBinding(type, editor.getModel()!, new Set([editor]), provider.awareness)
-  //   setBinding(binding)
-
-  //   editor.onDidChangeModelContent(() => {
-  //     setEditorText(editor.getValue())
-  //   })
-
-  //   return () => binding.destroy()
-  // }, [ydoc, provider, editor])
-
-  // useEffect(() => {
-  //   if (!provider) return
-
-  //   const awareness = provider.awareness
-
-  //   const handleUnload = () => {
-  //     // 通知其他人“我走了”
-  //     awareness.setLocalState(null)
-  //   }
-
-  //   window.addEventListener('beforeunload', handleUnload)
-
-  //   return () => {
-  //     window.removeEventListener('beforeunload', handleUnload)
-  //   }
-  // }, [provider])
-
-
-
   const filteredItems = useMemo(() => {
-    const filterMenu = (items: MenuItem[]): MenuItem[] =>
+    const filterMenu = (items: SiderMenuItem[]): SiderMenuItem[] =>
       items
         .map((item) => {
           if (item?.children) {
@@ -191,7 +130,7 @@ const MainPage: React.FC = () => {
             ? item
             : null
         })
-        .filter(Boolean) as MenuItem[]
+        .filter(Boolean) as SiderMenuItem[]
 
     return filterMenu(mode === 'user' ? userItems : roomItems)
   }, [searchText, mode])
@@ -213,8 +152,6 @@ const MainPage: React.FC = () => {
     selectedRoom,
     showPreview,
     setShowPreview,
-    colorBgContainer,
-    borderRadiusLG,
     peers
   }
 
@@ -222,17 +159,14 @@ const MainPage: React.FC = () => {
     <Layout style={{ minHeight: '100vh' }}>
       {/* ------------------ SIDER ------------------ */}
       <SiderMenu {...siderMenuProps} />
-
       {/* ------------------ MAIN AREA ------------------ */}
       <Layout style={{ flex: 1 }}>
         {/* 顶部 Header */}
         <Layout.Header className={styles.header}>
           <div style={{ fontWeight: 600 }}>Markdown 实时协作编辑器</div>
         </Layout.Header>
-
         {/* 主内容区 */}
         {selectedRoom ? <ContentWithEditorAndPreview {...contentWithEditorAndPreviewProps} /> : <CreateNewDocForm />}
-        
         <Layout.Footer style={{ textAlign: 'center' }}>
           Ant Design ©{new Date().getFullYear()} Created by Ant UED
         </Layout.Footer>

@@ -1,35 +1,43 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Typography, message, Card } from 'antd';
+import { Form, Input, Button, Typography, Card } from 'antd';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import RegisterModal from './RegisterModal'; // 引用注册弹窗
+import AuthModal from './AuthModal';
 
 const { Title, Text } = Typography;
+
+interface LoginFormValues {
+  email: string;
+  password: string;
+}
 
 const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [registerVisible, setRegisterVisible] = useState(false);
+  const [isExisted, setIsExisted] = useState(false);
   const navigate = useNavigate();
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<LoginFormValues>();
 
   // 登录逻辑
-  const handleLogin = async (values: any) => {
+  const handleLogin = async () => {
     setLoading(true);
-    try {
-      const { email, password } = values;
-      const res = await axios.post('/api/login', { email, password });
+    // try {
+    //   // const { email, password } = values;
+    //   // api
+    //   // const res = await axios.post('/api/login', { email, password });
 
-      if (res.status === 200) {
-        message.success('登录成功');
-        navigate('/home'); // 登录成功跳转主页
-      }
-    } catch (err) {
-      console.error(err);
-      message.error('登录失败，请检查邮箱和密码');
-    } finally {
-      setLoading(false);
-    }
+    //   if (res.status === 200) {
+    //     message.success('登录成功');
+    //     navigate('./home'); // 登录成功跳转主页
+    //   }
+    // } catch (err) {
+    //   console.error(err);
+    //   message.error('登录失败，请检查邮箱和密码');
+    // } finally {
+    //   setLoading(false);
+    // }
+    navigate('../app');
+    setLoading(false);
   };
 
   return (
@@ -46,8 +54,8 @@ const LoginPage: React.FC = () => {
         style={{
           width: 400,
           padding: 24,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-          borderRadius: 12,
+          boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+          borderRadius: 20,
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
@@ -114,14 +122,20 @@ const LoginPage: React.FC = () => {
             <Button
               type="link"
               style={{ padding: 0 }}
-              onClick={() => message.info('忘记密码功能开发中')}
+              onClick={() => {
+                setIsExisted(true);
+                setRegisterVisible(true);
+              }}
             >
               忘记密码？
             </Button>
             <Button
               type="link"
               style={{ padding: 0 }}
-              onClick={() => setRegisterVisible(true)}
+              onClick={() => {
+                setIsExisted(false);
+                setRegisterVisible(true);
+              }}
             >
               立即注册
             </Button>
@@ -130,10 +144,13 @@ const LoginPage: React.FC = () => {
       </Card>
 
       {/* 注册弹窗 */}
-      <RegisterModal
+      <AuthModal
         open={registerVisible}
+        isExisted={isExisted}
         onClose={() => setRegisterVisible(false)}
       />
+
+
     </div>
   );
 };

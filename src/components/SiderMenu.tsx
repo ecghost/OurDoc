@@ -1,5 +1,6 @@
 import { Layout, Segmented, Input, Menu } from 'antd'
-import type { ItemType } from 'antd/es/menu/interface'
+// import type { ItemType } from 'antd/es/menu/interface'
+import type { SiderMenuItem } from './MainPage'
 import type React from 'react'
 
 interface SiderMenuProps {
@@ -9,7 +10,7 @@ interface SiderMenuProps {
     setMode: React.Dispatch<React.SetStateAction<"user" | "room">>;
     searchText: string;
     setSearchText: React.Dispatch<React.SetStateAction<string>>;
-    filteredItems: ItemType[];
+    filteredItems: SiderMenuItem[];
     // 这里默认了room的key是string类型，可能后续需要修改
     setSelectedRoom: React.Dispatch<React.SetStateAction<string | null>>;
 }

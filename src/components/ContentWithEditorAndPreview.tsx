@@ -12,8 +12,6 @@ interface ContentWithEditorAndPreviewProps {
     selectedRoom: string | null;
     showPreview: boolean;
     setShowPreview: React.Dispatch<React.SetStateAction<boolean>>;
-    colorBgContainer: string;
-    borderRadiusLG: number;
     peers: number;
 }
 
@@ -74,8 +72,6 @@ export const ContentWithEditorAndPreview: React.FC<ContentWithEditorAndPreviewPr
     selectedRoom,
     showPreview,
     setShowPreview,
-    colorBgContainer,
-    borderRadiusLG,
     peers
 }) => {
     return (
@@ -102,8 +98,6 @@ export const ContentWithEditorAndPreview: React.FC<ContentWithEditorAndPreviewPr
                     display: 'flex',
                     gap: showPreview ? '16px' : 0,
                     padding: 24,
-                    background: colorBgContainer,
-                    // borderRadius: borderRadiusLG,
                     height: '90vh',
                     transition: 'all 0.3s ease',
                 }}
