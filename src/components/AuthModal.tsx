@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Modal, Form, Input, Button, message } from 'antd';
-import { LockOutlined, MailOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
+import { Modal, Form, Input, Button, message, Space  } from 'antd';
+import { LockOutlined, MailOutlined, SafetyCertificateOutlined, UserOutlined } from '@ant-design/icons';
+import axios from 'axios';
+
 
 interface AuthModalProps {
   open: boolean;
@@ -10,8 +12,9 @@ interface AuthModalProps {
 
 interface AuthFormValues {
   email: string;
-  verifyCode: string;
+  username: string;
   password: string;
+  verifyCode: string;
   confirmPassword: string;
 }
 
@@ -59,14 +62,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ open, isExisted, onClose }) => {
   const handleGetCode = async () => {
     try {
       // 校验并获取 email 字段
-      // const values = await form.validateFields(['email']);
-      // const email = values.email as string;
+      const values = await form.validateFields(['email']);
+      const email = values.email as string;
 
       // 这里可以做一次防抖 / 禁止重复调用：如果已经在倒计时中直接 return
       if (countdown > 0) return;
 
       // 调用后端接口发送验证码（替换为你自己的 API）
-      // await axios.post('/api/send-code', { email });
+      await axios.post('http://localhost:8000/auth/send-code', { email });
 
       message.success('验证码已发送，请注意查收');
       // 成功后开始倒计时（60秒）
@@ -86,14 +89,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ open, isExisted, onClose }) => {
   //根据isExisted决定是注册还是找回密码
   const handleSubmit = async () => {
     try {
-      // const values = await form.validateFields();
+      const values = await form.validateFields();
       setLoading(true);
 
       // 这里需要调用一个api
-      // await axios.post('/api/register', {
-      //   email: values.email,
-      //   password: values.password,
-      // });
+      await axios.post("http://localhost:8000/auth/register", values);
+      console.log("提交数据:", values);
 
       message.success('注册成功');
       form.resetFields();
@@ -110,9 +111,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ open, isExisted, onClose }) => {
     <Modal
       open={open}
       title={isExisted ? "找回密码" : "注册账号"}
-      onCancel={onClose}
+      onCancel={() => {
+        form.resetFields();
+        onClose();
+      }}
       footer={null}
       centered
+      styles={{
+        header: {
+          textAlign: 'center', // 标题文本居中
+        }
+      }}
     >
       <Form
         form={form}
@@ -133,30 +142,49 @@ const AuthModal: React.FC<AuthModalProps> = ({ open, isExisted, onClose }) => {
           <Input prefix={<MailOutlined />} placeholder="请输入邮箱" />
         </Form.Item>
 
+        {/* 条件渲染用户名输入框 - 只在注册时显示 */}
+        {!isExisted && (
+          <Form.Item
+            name="username"
+            label="用户名"
+            rules={[
+              { required: true, message: '请输入用户名！' },
+              { min: 2, message: '用户名至少2个字符！' },
+              { max: 20, message: '用户名不能超过20个字符！' },
+              {
+                pattern: /^[a-zA-Z0-9_\u4e00-\u9fa5]+$/,
+                message: '用户名只能包含中文、英文、数字和下划线！',
+              },
+            ]}
+            hasFeedback
+          >
+            <Input prefix={< UserOutlined />} placeholder="请输入用户名" />
+          </Form.Item>
+        )}
+
         {/* 验证码输入框 */}
         <Form.Item
-          name="varifyCode"
+          name="verifyCode"
           label="验证码"
           rules={[
             { required: true, message: '请输入验证码！' },
           ]}
           hasFeedback
         >
-          <Input
-            prefix={<SafetyCertificateOutlined />}
-            placeholder="请输入验证码"
-            addonAfter={
-              <Button
-                type='link'
-                size="small"
-                onClick={handleGetCode}
-                disabled={countdown > 0}
-              // 可以根据 disabled 加一个灰色样式（antd 默认会把 disabled 按钮灰掉）
-              >
-                {countdown > 0 ? `${countdown}s` : '获取验证码'}
-              </Button>
-            }
-          />
+          <Space.Compact style={{ width: '100%' }}>
+            <Input
+              prefix={<SafetyCertificateOutlined />}
+              placeholder="请输入验证码"
+            />
+            <Button
+              type='primary'
+              size="middle"
+              onClick={handleGetCode}
+              disabled={countdown > 0}
+            >
+              {countdown > 0 ? `${countdown}s` : '获取验证码'}
+            </Button>
+          </Space.Compact>
         </Form.Item>
 
         {/* 密码输入框 */}

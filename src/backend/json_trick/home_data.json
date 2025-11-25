@@ -1,0 +1,72 @@
+[
+    {
+        "room_id": "233996",
+        "room_name": "test1111111",
+        "create_time": "2025-11-23",
+        "overall_permission": 3,
+        "owner_user_id": "278788"
+    },
+    {
+        "room_id": "058520",
+        "room_name": "test2",
+        "create_time": "2025-11-24",
+        "overall_permission": 3,
+        "owner_user_id": "278788"
+    },
+    {
+        "room_id": "285481",
+        "room_name": "\u65b0\u6587\u6863 3",
+        "create_time": "2025-11-24",
+        "overall_permission": 3,
+        "owner_user_id": "278788"
+    },
+    {
+        "room_id": "134282",
+        "room_name": "\u65b0\u6587\u6863 4",
+        "create_time": "2025-11-24",
+        "overall_permission": 1,
+        "owner_user_id": "278788"
+    },
+    {
+        "room_id": "719068",
+        "room_name": "\u65b0\u6587\u6863 5",
+        "create_time": "2025-11-24",
+        "overall_permission": 1,
+        "owner_user_id": "278788"
+    },
+    {
+        "room_id": "566544",
+        "room_name": "\u6d9b\u6d9b\u6d9b\u6d9b",
+        "create_time": "2025-11-24",
+        "overall_permission": 1,
+        "owner_user_id": "278788"
+    },
+    {
+        "room_id": "183508",
+        "room_name": "123123123123123",
+        "create_time": "2025-11-24",
+        "overall_permission": 1,
+        "owner_user_id": "278788"
+    },
+    {
+        "room_id": "558646",
+        "room_name": "12344231",
+        "create_time": "2025-11-24",
+        "overall_permission": 1,
+        "owner_user_id": "278788"
+    },
+    {
+        "room_id": "150398",
+        "room_name": "453453543",
+        "create_time": "2025-11-24",
+        "overall_permission": 1,
+        "owner_user_id": "278788"
+    },
+    {
+        "room_id": "085646",
+        "room_name": "\u65b0\u6587\u6863 10",
+        "create_time": "2025-11-24",
+        "overall_permission": 2,
+        "owner_user_id": "278788"
+    }
+]

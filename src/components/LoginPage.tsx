@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Typography, Card } from 'antd';
+import { Form, Input, Button, Typography, Card, message } from 'antd';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import AuthModal from './AuthModal';
+import axios from 'axios';
 
 const { Title, Text } = Typography;
 
@@ -21,23 +22,29 @@ const LoginPage: React.FC = () => {
   // 登录逻辑
   const handleLogin = async () => {
     setLoading(true);
-    // try {
-    //   // const { email, password } = values;
-    //   // api
-    //   // const res = await axios.post('/api/login', { email, password });
+    try {
+    // 从表单获取值
+    const values = await form.validateFields();
+    const { email, password } = values;
 
-    //   if (res.status === 200) {
-    //     message.success('登录成功');
-    //     navigate('./home'); // 登录成功跳转主页
-    //   }
-    // } catch (err) {
-    //   console.error(err);
-    //   message.error('登录失败，请检查邮箱和密码');
-    // } finally {
-    //   setLoading(false);
-    // }
-    navigate('../app');
-    setLoading(false);
+    setLoading(true);
+
+    // 调用后端登录接口
+    const res = await axios.post("http://localhost:8000/auth/login", { email, password });
+
+    if (res.status === 200) {
+      message.success(res.data.msg || "登录成功");
+      localStorage.setItem("UserId", res.data.userid);
+      navigate('/app'); // 登录成功跳转主页
+    }
+  } catch (err) {
+      console.error(err);
+      message.error('登录失败，请检查邮箱和密码');
+    } finally {
+      setLoading(false);
+    }
+    // navigate('/app');
+    // setLoading(false);
   };
 
   return (

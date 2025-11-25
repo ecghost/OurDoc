@@ -1,33 +1,57 @@
-import React from 'react';
-import { Breadcrumb, Button, Form, Input, Layout } from 'antd';
-import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
-import Editor from '@monaco-editor/react';
+import React, { useEffect, useState } from "react";
+import {Button, Form, Input, Layout, message} from 'antd';
+import Editor, {type OnMount} from '@monaco-editor/react';
 import ReactMarkdown from 'react-markdown';
-import type { FormProps } from 'antd';
+import axios from "axios";
 
 interface ContentWithEditorAndPreviewProps {
     editorText: string;
-    setEditor: React.Dispatch<any>;
-    // 这里默认了room的key是string类型，可能后续需要修改
-    selectedRoom: string | null;
     showPreview: boolean;
-    setShowPreview: React.Dispatch<React.SetStateAction<boolean>>;
-    peers: number;
+    selectedRoom: string;
+    handleEditorMount: OnMount;
+    hasAccess?: boolean;
+    editingEnabled: boolean;
 }
 
-type FieldType = {
-    docname?: string;
+type CreateDocFormValues = {
+    docname: string;
 };
 
-const onFinish: FormProps<FieldType>['onFinish'] = (values) => {
-    console.log('Success:', values);
-};
+interface CreateNewDocFormProps {
+    userId: string;
+    onCreated: (roomId: string) => void; // 创建成功后的回调
+}
 
-const onFinishFailed: FormProps<FieldType>['onFinishFailed'] = (errorInfo) => {
-    console.log('Failed:', errorInfo);
-};
+export const CreateNewDocForm: React.FC<CreateNewDocFormProps> = ({ userId, onCreated }) => {
+    const [form] = Form.useForm<CreateDocFormValues>();
+    const [loading, setLoading] = useState(false);
 
-export const CreateNewDocForm: React.FC = () => {
+    const createNewDoc = async (values: CreateDocFormValues) => {
+        setLoading(true);
+        try {
+            // 1. 调用后端创建文档接口
+            const res = await axios.post("http://localhost:8000/content/createdoc", {
+                room_name: values.docname,
+                user_id: userId
+            });
+
+            if (res.data.success) {
+                message.success(`文档 "${values.docname}" 创建成功！`);
+                form.resetFields();
+
+                // 2. 调用父组件回调，将新文档的 room_id 返回
+                onCreated(res.data.room_id);
+            } else {
+                message.error(res.data.message || "创建失败");
+            }
+        } catch (error) {
+            console.error("创建文档失败", error);
+            message.error("网络错误，创建文档失败");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <Layout.Content
             style={{
@@ -36,85 +60,158 @@ export const CreateNewDocForm: React.FC = () => {
                 alignItems: 'center',
                 minHeight: 'calc(100vh - 64px - 70px)',
                 padding: '24px',
+                background: '#f5f5f5',
             }}
         >
-            <Form
-                name="basic"
-                labelCol={{ span: 8 }}
-                wrapperCol={{ span: 16 }}
-                style={{ maxWidth: 600 }}
-                initialValues={{ remember: true }}
-                onFinish={onFinish}
-                onFinishFailed={onFinishFailed}
-                autoComplete="off"
+            <div
+                style={{
+                    background: 'white',
+                    padding: '40px',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    width: '100%',
+                    maxWidth: '500px',
+                }}
             >
-                <Form.Item<FieldType>
-                    label="DocName"
-                    name="docname"
-                    rules={[{ required: true, message: 'Please input your doc name!' }]}
-                >
-                    <Input />
-                </Form.Item>
+                <h2 style={{textAlign: 'center', marginBottom: '32px', color: '#1890ff'}}>
+                    创建新文档
+                </h2>
 
-                <Form.Item label={null}>
-                    <Button type="primary" htmlType="submit">
-                        Create
-                    </Button>
-                </Form.Item>
-            </Form>
-        </Layout.Content>
-    )
-}
-
-export const ContentWithEditorAndPreview: React.FC<ContentWithEditorAndPreviewProps> = ({
-    editorText,
-    setEditor,
-    selectedRoom,
-    showPreview,
-    setShowPreview,
-    peers
-}) => {
-    return (
-        <Layout.Content>
-            {/* 文档展示区 + 操作区 */}
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Breadcrumb
-                    style={{ margin: '0 0' }}
-                    // 这里目前使用的是key，后续要换成文档的name
-                    items={[{ title: selectedRoom }, { title: `online peers: ${peers}` }]}
-                />
-                <Button
-                    type={showPreview ? 'primary' : 'default'}
-                    icon={showPreview ? <EyeInvisibleOutlined /> : <EyeOutlined />}
-                    onClick={() => setShowPreview(!showPreview)}
+                <Form<CreateDocFormValues>
+                    form={form}
+                    name="createDoc"
+                    labelCol={{span: 6}}
+                    wrapperCol={{span: 18}}
+                    style={{maxWidth: 600}}
+                    onFinish={createNewDoc}
+                    autoComplete="off"
+                    size="large"
                 >
-                    {showPreview ? '关闭预览' : '预览'}
-                </Button>
+                    <Form.Item<CreateDocFormValues>
+                        label="文档名称"
+                        name="docname"
+                        rules={[
+                            {required: true, message: '请输入文档名称！'},
+                            {min: 2, message: '文档名称至少2个字符！'},
+                            {max: 50, message: '文档名称不能超过50个字符！'},
+                            {
+                                pattern: /^[a-zA-Z0-9\u4e00-\u9fa5_\-\s]+$/,
+                                message: '文档名称只能包含中文、英文、数字、下划线和减号！',
+                            },
+                        ]}
+                    >
+                        <Input placeholder="请输入文档名称" allowClear/>
+                    </Form.Item>
+
+                    <Form.Item wrapperCol={{offset: 6, span: 18}}>
+                        <Button type="primary" htmlType="submit" block loading={loading} size="large">
+                            {loading ? '创建中...' : '创建文档'}
+                        </Button>
+                    </Form.Item>
+                </Form>
             </div>
+        </Layout.Content>
+    );
+};
 
+// Main content component
+export const ContentWithEditorAndPreview: React.FC<ContentWithEditorAndPreviewProps> = ({
+                                                                                            editorText,
+                                                                                            showPreview,
+                                                                                            selectedRoom,
+                                                                                            handleEditorMount,
+                                                                                            hasAccess = true,
+                                                                                            editingEnabled,
+                                                                                        }) => {
+    const [content, setContent] = useState(editorText);
+    useEffect(() => {
+        if (!selectedRoom) return;
+
+        const fetchContent = async () => {
+            try {
+                const res = await axios.get(`http://localhost:8000/content/getcontent?room_id=${selectedRoom}`);
+                if (res.data && res.data.content) {
+                    setContent(res.data.content);
+                }
+            } catch (err) {
+                console.error("获取房间内容失败", err);
+                message.error("获取房间内容失败");
+            }
+        };
+
+        fetchContent();
+    }, [selectedRoom]);                                                                                        
+    // No-access overlay
+    const NoAccessOverlay = () => (
+        <div style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            pointerEvents: 'auto',
+            zIndex: 30,
+        }}>
+            <div style={{
+                background: 'rgba(255,255,255,0.9)',
+                color: '#222',
+                padding: 24,
+                borderRadius: 12,
+                boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                textAlign: 'center',
+                maxWidth: 520,
+            }}>
+                <h3 style={{marginBottom: 12}}>无权查看文档内容</h3>
+                <div style={{marginBottom: 16, color: '#666'}}>
+                    你没有查看该文档的权限。
+                </div>
+                <div>
+                    <Button type="primary" onClick={() => window.location.reload()}>刷新重试</Button>
+                </div>
+            </div>
+        </div>
+    )
+
+    return (
+        <Layout.Content style={{
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+            position: 'relative',
+        }}>
             {/* 编辑器 + 预览区 */}
             <div
                 style={{
                     display: 'flex',
                     gap: showPreview ? '16px' : 0,
                     padding: 24,
-                    height: '90vh',
+                    flex: 1,
+                    overflow: 'hidden',
                     transition: 'all 0.3s ease',
+                    position: 'relative',
                 }}
             >
-                <div
-                    style={{
-                        width: showPreview ? '50%' : '100%',
-                        transition: 'width 0.3s ease',
-                    }}
-                >
-                    <Editor
-                        // height="60vh"
-                        defaultLanguage="markdown"
-                        defaultValue={editorText}
-                        theme="vs-dark"
-                        onMount={(editor) => setEditor(editor)}
-                    />
+                <div style={{
+                    width: showPreview ? '50%' : '100%',
+                    transition: 'width 0.3s ease',
+                    minWidth: 0,
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    borderRadius: '8px',
+                }}>
+                    <div style={{flex: 1, minHeight: 0}}>
+                        <Editor
+                            defaultLanguage="markdown"
+                            value={content}           // 改成 value，使编辑器内容受控
+                            theme="vs-dark"
+                            onChange={(value) => setContent(value || "")}
+                            onMount={handleEditorMount}
+                            options={{automaticLayout: true, minimap: {enabled: false}, readOnly: !editingEnabled}}
+                        />
+                    </div>
                 </div>
 
                 <div
@@ -123,16 +220,22 @@ export const ContentWithEditorAndPreview: React.FC<ContentWithEditorAndPreviewPr
                         opacity: showPreview ? 1 : 0,
                         background: '#1e1e1e',
                         color: '#fff',
-                        // borderRadius: borderRadiusLG,
                         padding: showPreview ? '16px' : 0,
                         overflowY: 'auto',
                         transition: 'all 0.3s ease',
+                        borderRadius: '8px',
                     }}
                 >
                     <ReactMarkdown>{editorText}</ReactMarkdown>
                 </div>
+
+                {/* Blur overlay when no view access */}
+                {!hasAccess && (
+                    <>
+                        <NoAccessOverlay/>
+                    </>
+                )}
             </div>
         </Layout.Content>
-
     );
 };
