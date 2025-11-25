@@ -30,7 +30,7 @@ const LoginPage: React.FC = () => {
     setLoading(true);
 
     // 调用后端登录接口
-    const res = await axios.post("http://localhost:8000/auth/login", { email, password });
+    const res = await axios.post("http://localhost:9000/auth/login", { email, password });
 
     if (res.status === 200) {
       message.success(res.data.msg || "登录成功");

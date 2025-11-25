@@ -86,10 +86,10 @@ const MyDocsPage: React.FC = () => {
         const fetchAll = async () => {
             try {
                 const [docsRes, usersRes] = await Promise.all([
-                    axios.get("http://localhost:8000/mydocs/getdocs", {
+                    axios.get("http://localhost:9000/mydocs/getdocs", {
                         params: { user_id: userId }
                     }),
-                    axios.get("http://localhost:8000/mydocs/getusers"),
+                    axios.get("http://localhost:9000/mydocs/getusers"),
                 ]);
 
                 setDocs(docsRes.data.docs);   // 后端返回 {docs: [...]}
@@ -122,7 +122,7 @@ const MyDocsPage: React.FC = () => {
         // api:向后端同步
 
         try {
-            await axios.post("http://localhost:8000/mydocs/update_visibility", {
+            await axios.post("http://localhost:9000/mydocs/update_visibility", {
                 room_id: selectedDoc.room_id,
                 overall_permission: val,
             });
@@ -147,7 +147,7 @@ const MyDocsPage: React.FC = () => {
         if (!selectedDoc) return
 
         try {
-            const res = await axios.post('http://localhost:8000/mydocs/remove_user', {
+            const res = await axios.post('http://localhost:9000/mydocs/remove_user', {
                 room_id: selectedDoc.room_id,
                 user_id: userId,
             })
@@ -171,7 +171,7 @@ const MyDocsPage: React.FC = () => {
     const handleChangePermission = async (userId: string, permission: 2|3) => {
         if (!selectedDoc) return
         try {
-            const res = await axios.post('http://localhost:8000/mydocs/change_permission', {
+            const res = await axios.post('http://localhost:9000/mydocs/change_permission', {
                 room_id: selectedDoc.room_id,
                 user_id: userId,
                 permission: permission,
@@ -258,7 +258,7 @@ const MyDocsPage: React.FC = () => {
         }
         try {
         // 调用后端接口
-            const res = await axios.post('http://localhost:8000/mydocs/add_users', payload)
+            const res = await axios.post('http://localhost:9000/mydocs/add_users', payload)
 
             if (res.data.success) {
                 // 成功后更新前端状态
@@ -316,7 +316,7 @@ const MyDocsPage: React.FC = () => {
             return
         }
         try {
-            const res = await axios.post('http://localhost:8000/mydocs/rename_room', {
+            const res = await axios.post('http://localhost:9000/mydocs/rename_room', {
                 room_id: selectedDoc.room_id,
                 room_name: newName,
             })
@@ -342,7 +342,7 @@ const MyDocsPage: React.FC = () => {
     // ----- delete document -----
     const handleDeleteDocument = async (docId: string) => {
         try {
-            const res = await axios.post('http://localhost:8000/mydocs/delete_room', {
+            const res = await axios.post('http://localhost:9000/mydocs/delete_room', {
                 room_id: docId,
             })
 
@@ -449,7 +449,7 @@ const MyDocsPage: React.FC = () => {
                         onClick={ async () => {
                             try {
                 // 1. 调用后端创建文档接口
-                                const res = await axios.post('http://localhost:8000/content/createdoc', {
+                                const res = await axios.post('http://localhost:9000/content/createdoc', {
                                     room_name: `新文档 ${docs.length + 1}`,
                                     user_id: userId
                                 })

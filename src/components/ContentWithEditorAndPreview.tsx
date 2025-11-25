@@ -30,7 +30,7 @@ export const CreateNewDocForm: React.FC<CreateNewDocFormProps> = ({ userId, onCr
         setLoading(true);
         try {
             // 1. 调用后端创建文档接口
-            const res = await axios.post("http://localhost:8000/content/createdoc", {
+            const res = await axios.post("http://localhost:9000/content/createdoc", {
                 room_name: values.docname,
                 user_id: userId
             });
@@ -129,7 +129,7 @@ export const ContentWithEditorAndPreview: React.FC<ContentWithEditorAndPreviewPr
 
         const fetchContent = async () => {
             try {
-                const res = await axios.get(`http://localhost:8000/content/getcontent?room_id=${selectedRoom}`);
+                const res = await axios.get(`http://localhost:9000/content/getcontent?room_id=${selectedRoom}`);
                 if (res.data && res.data.content) {
                     setContent(res.data.content);
                 }

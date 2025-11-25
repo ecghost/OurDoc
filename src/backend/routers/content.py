@@ -2,7 +2,7 @@ from fastapi import APIRouter, Query
 from typing import List
 from pydantic import BaseModel
 from datetime import datetime
-from routers.dataset_trick import create_doc_dataset, get_content_dataset, update_dataset
+from routers.dataset import create_doc_dataset, get_content_dataset, update_dataset
 import zlib
 
 router = APIRouter()
@@ -40,7 +40,6 @@ async def createdoc(data: Room):
 
 @router.get("/content/getcontent")
 async def get_content(room_id: str = Query(...)):
-    print(room_id)
     contents = get_content_dataset(room_id)
     return {"room_id": room_id, "room_name": "", "content": contents} 
 

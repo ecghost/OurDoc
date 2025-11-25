@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Query
 from typing import List
 from pydantic import BaseModel
-from routers.dataset_trick import get_user_list, get_doc_list, update_visibility_dataset, add_user_permission_dataset, remove_user_dataset, change_user_permission_dataset, change_room_name_dataset, delete_room_dataset
+from routers.dataset import get_user_list, get_doc_list, update_visibility_dataset, add_user_permission_dataset, remove_user_dataset, change_user_permission_dataset, change_room_name_dataset, delete_room_dataset
 
 def id_to_color(id: str) -> str:
     h = abs(hash(id))  

@@ -118,7 +118,7 @@ const MainPage: React.FC = () => {
     const checkViewPermission = async (roomId: string | null): Promise<boolean> => {
         if (!roomId) return false;
         try {
-            const res = await axios.get<boolean>('http://localhost:8000/main/read_permission', {
+            const res = await axios.get<boolean>('http://localhost:9000/main/read_permission', {
                 params: { room_id: roomId, user_id: userid }
             });
             // 直接返回后端返回的 boolean
@@ -132,7 +132,7 @@ const MainPage: React.FC = () => {
     const checkEditPermission = async (roomId: string | null): Promise<boolean> => {
         if (!roomId) return false;
         try {
-            const res = await axios.get<boolean>('http://localhost:8000/main/edit_permission', {
+            const res = await axios.get<boolean>('http://localhost:9000/main/edit_permission', {
                 params: { room_id: roomId, user_id: userid }
             });
             // 直接返回后端返回的 boolean
@@ -389,7 +389,7 @@ const MainPage: React.FC = () => {
         saveDocument(selectedRoom)
         // intentionally no further action (as requested)
         try {
-            await axios.post('http://localhost:8000/content/update', {
+            await axios.post('http://localhost:9000/content/update', {
                 room_id: selectedRoom,
                 content: ydocRef.current?.getText('monaco')
             });
@@ -453,7 +453,7 @@ const MainPage: React.FC = () => {
 
     const fetchRooms = async () => {
         try {
-            const res = await axios.get(`http://localhost:8000/rooms?userid=${userid}`);
+            const res = await axios.get(`http://localhost:9000/rooms?userid=${userid}`);
             localStorage.setItem("UserId", userid);
             const rooms = res.data  // [{ id, name, owner }, ...]
 

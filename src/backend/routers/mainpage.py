@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Query
 from typing import List
 from pydantic import BaseModel
-from routers.dataset_trick import main_page_dataset, get_edit_permission_dataset, get_read_permission_dataset
+from routers.dataset import main_page_dataset, get_edit_permission_dataset, get_read_permission_dataset
 
 router = APIRouter()
 

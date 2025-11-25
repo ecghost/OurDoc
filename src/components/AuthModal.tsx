@@ -69,7 +69,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ open, isExisted, onClose }) => {
       if (countdown > 0) return;
 
       // 调用后端接口发送验证码（替换为你自己的 API）
-      await axios.post('http://localhost:8000/auth/send-code', { email });
+      await axios.post('http://localhost:9000/auth/send-code', { email });
 
       message.success('验证码已发送，请注意查收');
       // 成功后开始倒计时（60秒）
@@ -93,7 +93,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ open, isExisted, onClose }) => {
       setLoading(true);
 
       // 这里需要调用一个api
-      await axios.post("http://localhost:8000/auth/register", values);
+      await axios.post("http://localhost:9000/auth/register", values);
       console.log("提交数据:", values);
 
       message.success('注册成功');

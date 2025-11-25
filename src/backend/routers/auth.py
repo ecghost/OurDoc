@@ -7,7 +7,7 @@ from passlib.hash import bcrypt
 from fastapi import Request
 import smtplib
 import random
-from routers.dataset_trick import register_dataset, reset_password_dataset
+from routers.dataset import register_dataset, reset_password_dataset
 
 router = APIRouter()
 
@@ -72,27 +72,33 @@ def send_email_code(to_email: str, code: str):
 
 @router.post("/register")
 async def register(data: RegisterModel, request: Request):
-    body = await request.json()
-    print("收到的 body =", body)
-    if data.verifyCode != verify_codes.get(data.email):
-        raise HTTPException(status_code=400, detail="验证码错误")
+    try:
+        body = await request.json()
+        print("收到的 body =", body)
+        if data.verifyCode != verify_codes.get(data.email):
+            raise HTTPException(status_code=400, detail="验证码错误")
 
-    password = data.password[:72]
-    hashed = bcrypt.hash(password)
+        password = data.password[:72]
+        hashed = bcrypt.hash(password)
 
-    """
-        这里接数据库逻辑，此处为注册，可以提供：
-        注册用户的邮箱: data.email
-        注册用户的密码: password
-        注册用户的密码(hash): hashed
-    """   
-    msg = register_dataset(data.username, data.email, hashed)
-    if msg:
-        print(f"[注册成功] {data.email} 密码哈希 {hashed}")
-        return {"msg": "密码重置成功"}
+        """
+            这里接数据库逻辑，此处为注册，可以提供：
+            注册用户的邮箱: data.email
+            注册用户的密码: password
+            注册用户的密码(hash): hashed
+        """   
+        msg = register_dataset(data.username, data.email, hashed)
+        if msg:
+            print(f"[注册成功] {data.email} 密码哈希 {hashed}")
+            return {"msg": "密码重置成功"}
 
-    else:
-        raise HTTPException(status_code=400, detail=f"注册失败: {msg}")
+        else:
+            raise HTTPException(status_code=400, detail=f"注册失败: {msg}")
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return {"error": str(e)}
+
 
 
 @router.post("/reset-password")

@@ -207,12 +207,6 @@ def create_doc_dataset(room_id, room_name, create_time, user_id, content, overal
 
 
 def main_page_dataset(userid):
-    """
-        查询策略：
-        查询所有的room_id, 返回{room_id, room_name, owner_user_name, permission}
-        将总体权限为1(所有人可编辑), 2(所有人可读)进行查询，返回{room_id, room_name, owner_user_id, permission}, 通过owner_user_id查询对应的owner_user_name
-        将总体权限为3(部分人可编辑/可读)的room_id进一步查询权限表，查询主键[room_id, user_id]是否存在，如果存在，查看具体权限，返回{room_id, room_name, owner_user_id, permission}
-    """
     rooms = read_columns_values("user_room_table", ("room_id", "room_name", "owner_user_id", "overall_permission"))
 
     result = []
@@ -230,32 +224,6 @@ def main_page_dataset(userid):
             "owner_user_name": owner_name,
             "permission": overall_perm
         })
-
-        # if owner_id == userid:
-        #     result.append({
-        #         "room_id": rid,
-        #         "room_name": rname,
-        #         "owner_user_name": owner_name,
-        #         "permission": overall_perm
-        #     })
-
-        # elif overall_perm in [1, 2]:
-        #     result.append({
-        #         "room_id": rid,
-        #         "room_name": rname,
-        #         "owner_user_name": owner_name,
-        #         "permission": overall_perm
-        #     })
-        # elif overall_perm == 3:
-        #     user_perm = read_dataset("room_permission_table", (rid, userid), "permission")
-        #     # owner_user_id = read_dataset_condition("user_room_table", "")
-        #     if user_perm is not None :
-        #         result.append({
-        #             "room_id": rid,
-        #             "room_name": rname,
-        #             "owner_user_name": owner_name,
-        #             "permission": user_perm
-        #         })
     return result
 
 

@@ -1,0 +1,18 @@
+services:
+  opengauss1:
+    image: opengauss:7.0.0-rc1
+    container_name: og1
+    environment:
+      GS_PASSWORD: "Sakura030523!"
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  opengauss2:
+    image: opengauss:7.0.0-rc1
+    container_name: og2
+    environment:
+      GS_PASSWORD: "Sakura030523!"
+    ports:
+      - "5433:5432"
+    restart: unless-stopped
