@@ -7,64 +7,72 @@ import (
 	"log"
 )
 
-// InitTables 创建用户、文档、权限和内容表
+// InitTables 创建用户、房间(document)、权限和内容表
 func InitTables() {
-	// 用户表分片（简单: id % 2）
-	userTables := []struct {
-		db    *sql.DB
-		table string
-	}{
-		{DBOg1, "user_0"},
-		{DBOg2, "user_1"},
+	// 用户表：不再分片，统一使用 DBOg1.user
+	userSQL := `
+    CREATE TABLE IF NOT EXISTS "user" (
+        id VARCHAR(64) PRIMARY KEY,
+        user_name VARCHAR(64),
+        email VARCHAR(100),
+        password VARCHAR(256)
+    );`
+	if _, err := DBOg1.Exec(userSQL); err != nil {
+		log.Fatalf("Create user table failed: %v", err)
 	}
 
-	for _, t := range userTables {
+	// room(document)、permission、content 表：
+	// 以 hash(room_id) 在两个实例上分片，这里采用两个分片：_0 落在 og1，_1 落在 og2。
+	type shardTable struct {
+		db     *sql.DB
+		suffix string
+	}
+
+	roomShards := []shardTable{
+		{DBOg1, "0"},
+		{DBOg2, "1"},
+	}
+
+	// document_<shard>
+	for _, s := range roomShards {
 		sqlStr := fmt.Sprintf(`
-        CREATE TABLE IF NOT EXISTS %s (
-            id VARCHAR(64) PRIMARY KEY,
-            user_name VARCHAR(64),
-            email VARCHAR(100),
-            password VARCHAR(256)
-        );`, t.table)
-		if _, err := t.db.Exec(sqlStr); err != nil {
-			log.Fatalf("Create table %s failed: %v", t.table, err)
+        CREATE TABLE IF NOT EXISTS document_%s (
+            room_id VARCHAR(64) PRIMARY KEY,
+            room_name VARCHAR(128),
+            create_time TIMESTAMP,
+            overall_permission INT,
+			owner_user_id VARCHAR(64)
+        );`, s.suffix)
+		if _, err := s.db.Exec(sqlStr); err != nil {
+			log.Fatalf("Create table document_%s failed: %v", s.suffix, err)
 		}
 	}
 
-	// 文档表（单表）
-	docSQL := `
-    CREATE TABLE IF NOT EXISTS document (
-        room_id VARCHAR(64) PRIMARY KEY,
-        room_name VARCHAR(128),
-        create_time TIMESTAMP,
-        overall_permission INT,
-		owner_user_id VARCHAR(64)
-    );`
-	if _, err := DBOg1.Exec(docSQL); err != nil {
-		log.Fatalf("Create document table failed: %v", err)
+	// permission_<shard>
+	for _, s := range roomShards {
+		sqlStr := fmt.Sprintf(`
+        CREATE TABLE IF NOT EXISTS permission_%s (
+            room_id VARCHAR(64),
+            user_id VARCHAR(64),
+            permission INT,
+            PRIMARY KEY(room_id, user_id)
+        );`, s.suffix)
+		if _, err := s.db.Exec(sqlStr); err != nil {
+			log.Fatalf("Create table permission_%s failed: %v", s.suffix, err)
+		}
 	}
 
-	// 权限表
-	permSQL := `
-    CREATE TABLE IF NOT EXISTS permission (
-        room_id VARCHAR(64),
-        user_id VARCHAR(64),
-        permission INT,
-        PRIMARY KEY(room_id, user_id)
-    );`
-	if _, err := DBOg1.Exec(permSQL); err != nil {
-		log.Fatalf("Create permission table failed: %v", err)
+	// content_<shard>
+	for _, s := range roomShards {
+		sqlStr := fmt.Sprintf(`
+        CREATE TABLE IF NOT EXISTS content_%s (
+            room_id VARCHAR(64) PRIMARY KEY,
+            content TEXT
+        );`, s.suffix)
+		if _, err := s.db.Exec(sqlStr); err != nil {
+			log.Fatalf("Create table content_%s failed: %v", s.suffix, err)
+		}
 	}
 
-	// 内容表
-	contentSQL := `
-    CREATE TABLE IF NOT EXISTS content (
-        room_id VARCHAR(64) PRIMARY KEY,
-        content TEXT
-    );`
-	if _, err := DBOg1.Exec(contentSQL); err != nil {
-		log.Fatalf("Create content table failed: %v", err)
-	}
-
-	log.Println("All tables created successfully")
+	log.Println("All tables (user + sharded room/permission/content) created successfully")
 }

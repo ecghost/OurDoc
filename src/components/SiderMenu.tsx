@@ -1,8 +1,7 @@
-import { Layout, Segmented, Input, Menu, Button } from 'antd'
-// import type { ItemType } from 'antd/es/menu/interface'
-import type { SiderMenuItem } from './MainPage'
-import { PlusOutlined } from '@ant-design/icons';
+import {Layout, Segmented, Input, Menu, Button} from 'antd'
+import type {SiderMenuItem} from './MainPage'
 import type React from 'react'
+import {PlusOutlined} from '@ant-design/icons';
 
 interface SiderMenuProps {
     collapsed: boolean;
@@ -12,20 +11,22 @@ interface SiderMenuProps {
     searchText: string;
     setSearchText: React.Dispatch<React.SetStateAction<string>>;
     filteredItems: SiderMenuItem[];
-    // 这里默认了room的key是string类型，可能后续需要修改
     setSelectedRoom: React.Dispatch<React.SetStateAction<string | null>>;
+    handleSyncButtonClick: Promise<void>;
 }
 
 const SiderMenu: React.FC<SiderMenuProps> = ({
-    collapsed, 
-    onCollapse, 
-    mode, 
-    setMode, 
-    searchText, 
-    setSearchText, 
-    filteredItems, 
-    setSelectedRoom 
-}) => {
+                                                 collapsed,
+                                                 onCollapse,
+                                                 mode,
+                                                 setMode,
+                                                 searchText,
+                                                 setSearchText,
+                                                 filteredItems,
+                                                 setSelectedRoom,
+                                                 handleSyncButtonClick
+
+                                             }) => {
     return (
         <Layout.Sider collapsible collapsed={collapsed} onCollapse={onCollapse}>
             <div style={{
@@ -33,11 +34,11 @@ const SiderMenu: React.FC<SiderMenuProps> = ({
                 flexDirection: 'column',
                 height: '100%'
             }}>
-                <div style={{ padding: 12 }}>
+                <div style={{padding: 12}}>
                     <Segmented
                         options={[
-                            { label: '用户名', value: 'user' },
-                            { label: '房间名', value: 'room' },
+                            {label: '用户名', value: 'user'},
+                            {label: '房间名', value: 'room'},
                         ]}
                         value={mode}
                         onChange={(val) => setMode(val as 'user' | 'room')}
@@ -48,7 +49,7 @@ const SiderMenu: React.FC<SiderMenuProps> = ({
                         allowClear
                         value={searchText}
                         onChange={(e) => setSearchText(e.target.value)}
-                        style={{ marginTop: 12 }}
+                        style={{marginTop: 12}}
                     />
                 </div>
 
@@ -56,21 +57,12 @@ const SiderMenu: React.FC<SiderMenuProps> = ({
                     theme="dark"
                     mode="inline"
                     items={filteredItems}
-                    onClick={(e) => setSelectedRoom(e.key)}
-                    style={{ flex: 1, overflow: 'auto' }}
+                    onClick={(e) => {
+                        setSelectedRoom(e.key)
+                        handleSyncButtonClick(e.key)
+                    }}
+                    style={{flex: 1, overflow: 'auto'}}
                 />
-
-                {/* 底部新建按钮 */}
-                <div style={{ padding: '12px', borderTop: '1px solid #434343' }}>
-                    <Button
-                        type="primary"
-                        block
-                        onClick={() => setSelectedRoom(null)}
-                        icon={<PlusOutlined />}
-                    >
-                        {collapsed ? '' : '新建文档'}
-                    </Button>
-                </div>
             </div>
         </Layout.Sider>
     )

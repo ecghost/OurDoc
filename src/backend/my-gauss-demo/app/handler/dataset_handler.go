@@ -52,14 +52,8 @@ func HandleReadDataset(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if result == nil {
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"result": nil,
-			"debug": map[string]string{
-				"dataset_name": datasetName,
-				"goal_key":     goalKey,
-			},
-		})
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]interface{}{"result": nil})
 		return
 	}
 
@@ -121,6 +115,44 @@ func HandleReadDatasetCondition(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{"result": result})
+}
+
+// HandleRemoveDatasetMainKey 删除某行数据集请求
+// GET /api/dataset/read_json?dataset_name=user_table
+func HandleRemoveDatasetMainKey(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		DatasetName string      `json:"dataset_name"`
+		MainKey     interface{} `json:"main_key"`
+		MainValue   interface{} `json:"main_value"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+		return
+	}
+
+	if req.DatasetName == "" || req.MainKey == nil || req.MainValue == nil {
+		http.Error(w, "Missing required parameters: dataset_name, main_key, main_value", http.StatusBadRequest)
+		return
+	}
+
+	err := model.RemoveDatasetMainKey(req.DatasetName, req.MainKey, req.MainValue)
+	if err != nil {
+		log.Printf("RemoveDatasetMainKey failed: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"msg":     "删除成功",
+	})
 }
 
 // HandleInsertDataIntoDataset 处理插入数据请求
@@ -233,44 +265,6 @@ func HandleReadJSON(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(data)
-}
-
-// HandleRemoveDatasetMainKey 删除某行数据集请求
-// GET /api/dataset/read_json?dataset_name=user_table
-func HandleRemoveDatasetMainKey(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	var req struct {
-		DatasetName string      `json:"dataset_name"`
-		MainKey     interface{} `json:"main_key"`
-		MainValue   interface{} `json:"main_value"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
-		return
-	}
-
-	if req.DatasetName == "" || req.MainKey == nil || req.MainValue == nil {
-		http.Error(w, "Missing required parameters: dataset_name, main_key, main_value", http.StatusBadRequest)
-		return
-	}
-
-	err := model.RemoveDatasetMainKey(req.DatasetName, req.MainKey, req.MainValue)
-	if err != nil {
-		log.Printf("RemoveDatasetMainKey failed: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"msg":     "删除成功",
-	})
 }
 
 // HandleWriteJSON 处理写入整个数据集请求

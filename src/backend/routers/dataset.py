@@ -270,7 +270,7 @@ def get_edit_permission_dataset(room_id: str, user_id: str) -> bool:
                 perm_value = perm
 
             # 默认权限为不可编辑
-            if perm_value is None or perm_value == 2:
+            if perm_value is None or perm_value == 1:
                 return False
             return True
 
@@ -440,8 +440,6 @@ def change_room_name_dataset(room_id: str, room_name: str) -> bool:
 
 # 删除房间权限表中某个用户的记录
 def remove_user_dataset(room_id: str, user_id: str) -> bool:
-    """
-    """
     success = dataset_client.remove_dataset_mainkey(
         "permission",
         ("room_id", "user_id"),

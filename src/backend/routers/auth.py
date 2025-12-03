@@ -23,7 +23,6 @@ class RegisterModel(BaseModel):
     username: str
     password: str
     verifyCode: str
-    confirmPassword: str
 
 class ResetPasswordModel(BaseModel):
     email: EmailStr
@@ -106,7 +105,7 @@ async def reset_password(data: ResetPasswordModel):
     if data.verifyCode != verify_codes.get(data.email):
         raise HTTPException(status_code=400, detail="验证码错误")
 
-    password = data.password[:72]
+    password = data.newPassword[:72]
     hashed = bcrypt.hash(password)
 
     """

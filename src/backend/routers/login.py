@@ -22,5 +22,5 @@ async def login(data: LoginModel):
 
     return {
             "msg": "登录成功",
-            "userid": id
+            "userId": id
             }
